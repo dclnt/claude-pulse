@@ -93,7 +93,7 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 #status-pill.major { border-color: rgba(226,88,92,.25); }
 #status-time { color: var(--text); font-variant-numeric: tabular-nums; }
 .status-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-.data-age { font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--dim); letter-spacing: .04em; }
+#data-age { font-family: 'JetBrains Mono', monospace; font-size: .56rem; color: var(--dim); letter-spacing: .12em; text-transform: uppercase; }
 @keyframes blink { 0%,92%,100%{opacity:1} 96%{opacity:.4} }
 
 /* ---- Stale ribbon ---- */
@@ -943,7 +943,7 @@ function updateDataAge() {
   const el = document.getElementById('data-age');
   if (!el || !_statusTs) return;
   const ageMin = Math.max(0, Math.floor((Date.now() - new Date(_statusTs).getTime()) / 60000));
-  el.textContent = `data ${ageMin === 0 ? 'just updated' : ageMin + ' min old'}`;
+  el.textContent = ageMin === 0 ? 'data · just updated' : `data · ${ageMin} min old`;
 }
 tickClock();
 setInterval(tickClock, 1000);
