@@ -1,0 +1,25 @@
+# Secrets — never commit
+.env
+*.env
+
+# Probe output — generated at runtime
+data/*
+!data/.gitkeep
+data.js
+
+# Logs
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Dev throwaways (not needed in the repo or on the live site)
+*.bak
+.claude-pids
+mockup*.html
