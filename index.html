@@ -91,7 +91,9 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 #status-pill.degraded { border-color: rgba(240,180,41,.25); }
 #status-pill.major    #status-dot { background: var(--bad);  box-shadow: 0 0 10px var(--bad); }
 #status-pill.major { border-color: rgba(226,88,92,.25); }
-#status-time { color: var(--muted); }
+#status-time { color: var(--text); font-variant-numeric: tabular-nums; }
+.status-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.data-age { font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--dim); letter-spacing: .04em; }
 @keyframes blink { 0%,92%,100%{opacity:1} 96%{opacity:.4} }
 
 /* ---- Stale ribbon ---- */
@@ -315,7 +317,7 @@ footer a:hover { text-decoration: underline; }
   .panel { grid-template-columns: 1fr; }
   .legend .bar { width: 130px; }
   header { flex-direction: column; align-items: stretch; gap: 10px; }
-  #status-pill { align-self: flex-start; }
+  .status-wrap { align-self: flex-start; align-items: flex-start; }
   .chip.more-toggle { min-height: 40px; padding: 8px 14px; }
 }
 @media (max-width: 400px) {
@@ -335,10 +337,13 @@ footer a:hover { text-decoration: underline; }
       </div>
       <div class="subtitle">// live latency observatory &middot; src:&nbsp;<a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM&nbsp;Overwatch</a></div>
     </div>
-    <div id="status-pill" class="unknown" role="status" aria-label="Service status">
-      <span id="status-dot" aria-hidden="true"></span>
-      <span id="status-label">Loading&hellip;</span>
-      <span id="status-time"></span>
+    <div class="status-wrap">
+      <div id="status-pill" class="unknown" role="status" aria-label="Service status">
+        <span id="status-dot" aria-hidden="true"></span>
+        <span id="status-label">Loading&hellip;</span>
+        <span id="status-time" aria-label="current local time"></span>
+      </div>
+      <div id="data-age" aria-live="polite"></div>
     </div>
   </header>
 
@@ -408,8 +413,6 @@ footer a:hover { text-decoration: underline; }
     </div>
   </div>
 
-  <!-- model chips rail -->
-  <div class="rail" id="rail" role="list" aria-label="Model status"></div>
 
   <footer>
     measured by <a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM Overwatch</a> &middot; ~5 min refresh<br>
@@ -701,7 +704,7 @@ function renderStatus(data) {
   const ts = v.lastUpdated || data.fetchedAt;
   if (ts) {
     _statusTs = ts;
-    updateStatusAge();
+    updateDataAge();
     const d = new Date(ts);
     pill.setAttribute('aria-label', `Service status: ${labelEl.textContent}, data updated ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')} ${TZ_LABEL}`);
   }
@@ -913,7 +916,6 @@ function render() {
   renderStatus(data);
   render24hStrip(data.trend24h);
   renderWeekStrip(data.week);
-  renderModels(data.models);
 
   // Draw dial + verdict for the selected model (or overall)
   applyModel(sel.value);
@@ -927,20 +929,25 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Live freshness: show when the data was last updated and tick the "ago" every minute,
-// so the page feels current between the 15-min reloads (no manual refresh needed).
+// Live wall clock: the top-right time is the ACTUAL current local time, ticking every
+// second, independent of data freshness. Data age is shown separately below the pill.
 let _statusTs = null;
-function updateStatusAge() {
-  if (!_statusTs) return;
+function tickClock() {
   const el = document.getElementById('status-time');
   if (!el) return;
-  const d  = new Date(_statusTs);
-  const hh = d.getHours().toString().padStart(2, '0');
-  const mm = d.getMinutes().toString().padStart(2, '0');
-  const ageMin = Math.max(0, Math.floor((Date.now() - d.getTime()) / 60000));
-  el.textContent = `${hh}:${mm} · ${ageMin === 0 ? 'just now' : ageMin + 'm ago'}`;
+  const d = new Date();
+  el.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()]
+    .map(n => String(n).padStart(2, '0')).join(':');
 }
-setInterval(updateStatusAge, 60000);
+function updateDataAge() {
+  const el = document.getElementById('data-age');
+  if (!el || !_statusTs) return;
+  const ageMin = Math.max(0, Math.floor((Date.now() - new Date(_statusTs).getTime()) / 60000));
+  el.textContent = `data ${ageMin === 0 ? 'just updated' : ageMin + ' min old'}`;
+}
+tickClock();
+setInterval(tickClock, 1000);
+setInterval(updateDataAge, 60000);
 
 window.addEventListener('DOMContentLoaded', render);
 
