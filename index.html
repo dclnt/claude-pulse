@@ -168,7 +168,7 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 }
 .legend .bar {
   width: 190px; height: 6px; border-radius: 4px;
-  background: linear-gradient(to right, var(--slow), var(--mid), var(--fast));
+  background: linear-gradient(to right, var(--amber) 0%, var(--slow) 16%, var(--mid) 58%, var(--fast) 100%);
   box-shadow: 0 0 10px rgba(94,240,160,.2);
 }
 #legend-cap {
@@ -231,6 +231,15 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .chip .d.bad { background: var(--bad);  box-shadow: 0 0 6px var(--bad); }
 .chip .ms { color: var(--muted); font-size: .64rem; }
 
+/* hidden chips (revealed by toggle) */
+.chip.hidden { display: none; }
+.chip.more-toggle {
+  color: var(--muted); cursor: pointer; background: none;
+  border: 1px dashed var(--border); min-height: 36px;
+}
+.chip.more-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.chip.more-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
 /* ---- ⓘ panel ---- */
 #info-panel {
   display: none; margin-top: 12px; text-align: left;
@@ -260,6 +269,30 @@ footer a:hover { text-decoration: underline; }
 }
 #info-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
 
+/* ---- Model selector bar ---- */
+.model-bar {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin: 0 0 16px; flex-wrap: wrap;
+}
+.model-bar label {
+  font-family: 'JetBrains Mono', monospace; font-size: .62rem;
+  color: var(--muted); letter-spacing: .14em; text-transform: uppercase;
+}
+.model-bar select {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: .72rem;
+  padding: 7px 12px; min-height: 36px; cursor: pointer;
+  outline: none; appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237c889e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 30px;
+}
+.model-bar select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+@media (max-width: 600px) {
+  .model-bar { gap: 8px; }
+  .model-bar select { width: 100%; max-width: 340px; min-height: 40px; }
+}
+
 /* ---- Verdict count-up glow ---- */
 @keyframes glow-pulse { 0%,100%{text-shadow:0 0 26px rgba(143,247,184,.42),.6px 0 0 rgba(138,123,255,.14)} 50%{text-shadow:0 0 48px rgba(143,247,184,.75), 0 0 18px var(--fast),.6px 0 0 rgba(138,123,255,.22)} }
 .glow { animation: glow-pulse .65s ease-out; }
@@ -281,6 +314,9 @@ footer a:hover { text-decoration: underline; }
   #verdict .num { font-size: 2.2rem; }
   .panel { grid-template-columns: 1fr; }
   .legend .bar { width: 130px; }
+  header { flex-direction: column; align-items: stretch; gap: 10px; }
+  #status-pill { align-self: flex-start; }
+  .chip.more-toggle { min-height: 40px; padding: 8px 14px; }
 }
 @media (max-width: 400px) {
   #verdict .num { font-size: 1.8rem; }
@@ -307,6 +343,11 @@ footer a:hover { text-decoration: underline; }
   </header>
 
   <div id="stale-ribbon" role="alert" aria-live="polite"></div>
+
+  <div class="model-bar">
+    <label for="model-select">MODEL</label>
+    <select id="model-select" aria-label="Select model"></select>
+  </div>
 
   <div class="hero">
     <div id="dial-wrap" aria-label="Hourly latency dial" role="img">
@@ -371,11 +412,11 @@ footer a:hover { text-decoration: underline; }
   <div class="rail" id="rail" role="list" aria-label="Model status"></div>
 
   <footer>
-    measured by <a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM Overwatch</a> &middot; ~10 min refresh<br>
+    measured by <a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM Overwatch</a> &middot; ~5 min refresh<br>
     <button id="info-toggle" aria-expanded="false" aria-controls="info-panel">&#9432; How this works</button>
     <div id="info-panel" role="region" aria-label="How this works">
       <h3>How this works</h3>
-      <p><strong>Data source:</strong> <a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM Overwatch</a> runs continuous probes from their own servers and publishes a free public JSON feed. This page reads that feed every ~10 minutes and writes <code>data.js</code> locally.</p>
+      <p><strong>Data source:</strong> <a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM Overwatch</a> runs continuous probes from their own servers and publishes a free public JSON feed. This page reads that feed every ~5 minutes and writes <code>data.js</code> locally.</p>
       <p><strong>What is measured:</strong> <strong>Response time in milliseconds, not answer quality.</strong> Measurements come from LLM Overwatch's servers to Anthropic's API — not from your machine. A fast response can still be wrong; a slow one can still be correct.</p>
       <p><strong>Dial:</strong> Each arc segment is one hour of the day. Brighter ice-cyan = faster (lower ms). Amber = unusually slow. The now-hand sweeps in real time, confined to the arc band.</p>
       <p><strong>Timezone:</strong> LLM Overwatch publishes hours in UTC; this page converts them to your local timezone (<span id="tz-name"></span>) so the dial matches your day. Conversion uses your device's current UTC offset, so it follows daylight saving automatically.</p>
@@ -469,8 +510,7 @@ function drawDialChrome(localHourly) {
     tick.setAttribute('stroke-width', isMaj ? '1.5' : '1');
     tickG.appendChild(tick);
     if (h % 3 === 0) {
-      // label shows local hour at this dial position
-      const localH = utcHourToLocal(h);
+      // h is already a local-hour position (arcs are remapped to local before drawDialChrome is called)
       const [lx, ly] = pol(RTICK + 17, angle);
       const tx = document.createElementNS(NS, 'text');
       tx.setAttribute('x', lx); tx.setAttribute('y', ly);
@@ -478,7 +518,7 @@ function drawDialChrome(localHourly) {
       tx.setAttribute('font-family', 'JetBrains Mono, monospace');
       tx.setAttribute('text-anchor', 'middle');
       tx.setAttribute('dominant-baseline', 'middle');
-      tx.textContent = localH;
+      tx.textContent = h;
       labelG.appendChild(tx);
     }
   }
@@ -557,16 +597,16 @@ function animateHand() {
 }
 
 // ---- Verdict (count-up + soft glow) ----
-function setVerdict(data) {
+// verdictObj: { last15MinAverage_ms, allTimeAverage_ms, performanceDiff_ms, status, lastUpdated }
+// feedLastUpdated: the overall feed's lastUpdated timestamp (for stale-ribbon check)
+function setVerdict(verdictObj, feedLastUpdated) {
   const numEl   = document.getElementById('verdict-num');
   const deltaEl = document.getElementById('verdict-delta');
   const ribbon  = document.getElementById('stale-ribbon');
-  const v       = data.verdict;
 
-  // Stale check: feed's lastUpdated vs browser clock
-  const lastUpdated = v.lastUpdated || data.fetchedAt;
-  if (lastUpdated) {
-    const ageMin = (Date.now() - new Date(lastUpdated).getTime()) / 60000;
+  // Stale check uses the overall feed freshness, not per-model
+  if (feedLastUpdated) {
+    const ageMin = (Date.now() - new Date(feedLastUpdated).getTime()) / 60000;
     if (ageMin > 60) {
       ribbon.style.display = 'block';
       const hAgo = Math.round(ageMin / 60);
@@ -578,9 +618,9 @@ function setVerdict(data) {
     }
   }
 
-  const last15 = v.last15MinAverage_ms;
-  const diff   = v.performanceDiff_ms;
-  const allTime = v.allTimeAverage_ms;
+  const last15  = verdictObj.last15MinAverage_ms;
+  const diff    = verdictObj.performanceDiff_ms;
+  const allTime = verdictObj.allTimeAverage_ms;
 
   if (!last15) {
     numEl.textContent = '--';
@@ -610,6 +650,38 @@ function setVerdict(data) {
   } else {
     deltaEl.textContent = '';
   }
+}
+
+// ---- Apply model selection (re-renders dial + verdict center) ----
+// sel: "__all__" or a raw model name
+let _feedLastUpdated = null;
+function applyModel(sel) {
+  const data = window.PULSE_DATA;
+  if (!data) return;
+  let hourlySrc, verdictObj;
+  if (sel === '__all__') {
+    hourlySrc  = data.hourly;
+    verdictObj = data.verdict;
+  } else {
+    const m = data.models && data.models.find(x => x.name === sel);
+    if (!m) return;
+    hourlySrc  = m.byHourData;
+    verdictObj = {
+      last15MinAverage_ms:  m.metrics.last15MinAverage,
+      allTimeAverage_ms:    m.metrics.allTimeAverage,
+      performanceDiff_ms:   m.metrics.performanceDiff,
+      status:               m.status,
+      lastUpdated:          m.metrics.lastUpdated
+    };
+  }
+  const localHourly = (hourlySrc || []).map(e => ({ ...e, hour: utcHourToLocal(e.hour) }));
+  const dataCount   = localHourly.filter(e => e.average_ms && e.average_ms > 0).length;
+  const coldStart   = dataCount < 6;
+  drawDialChrome(localHourly);
+  drawArcs(localHourly, coldStart);
+  drawNowRing(new Date().getHours());
+  animateHand();
+  setVerdict(verdictObj, _feedLastUpdated);
 }
 
 // ---- Status pill ----
@@ -737,15 +809,19 @@ function renderModels(models) {
   rail.innerHTML = '';
   if (!models || models.length === 0) return;
 
-  const shown = models.slice(0, 8);
-  shown.forEach(m => {
+  const VISIBLE = 8;
+  const overflow = models.length - VISIBLE;
+
+  models.forEach((m, i) => {
     const chip = document.createElement('div');
-    chip.className = 'chip'; chip.setAttribute('role', 'listitem');
-    const dot  = document.createElement('span');
+    chip.className = 'chip';
+    if (i >= VISIBLE) chip.classList.add('hidden');
+    chip.setAttribute('role', 'listitem');
+    const dot = document.createElement('span');
     dot.className = 'd';
     const st = (m.status || 'unknown').toLowerCase();
-    if (st === 'operational')              dot.classList.add('ok');
-    else if (st === 'degraded')            dot.classList.add('deg');
+    if (st === 'operational')                  dot.classList.add('ok');
+    else if (st === 'degraded')                dot.classList.add('deg');
     else if (st === 'major' || st === 'outage') dot.classList.add('bad');
     const name = m.name.replace(/^anthropic-/, '');
     const nameEl = document.createElement('span');
@@ -762,11 +838,22 @@ function renderModels(models) {
     chip.title = `${name} — ${st}${last15 ? ' · ' + fmtMs(Math.round(last15)) : ''}`;
     rail.appendChild(chip);
   });
-  if (models.length > 8) {
-    const more = document.createElement('div');
-    more.className = 'chip'; more.style.color = 'var(--muted)';
-    more.textContent = `+${models.length - 8} more`;
-    rail.appendChild(more);
+
+  if (overflow > 0) {
+    const toggle = document.createElement('button');
+    toggle.className = 'chip more-toggle';
+    toggle.setAttribute('aria-label', `Show ${overflow} more models`);
+    toggle.textContent = `+${overflow} more`;
+    toggle.addEventListener('click', function () {
+      const expanded = toggle.dataset.expanded === 'true';
+      rail.querySelectorAll('.chip.hidden').forEach(c => {
+        c.style.display = expanded ? '' : 'inline-flex';
+      });
+      toggle.dataset.expanded = String(!expanded);
+      toggle.textContent = expanded ? `+${overflow} more` : 'show less';
+      toggle.setAttribute('aria-label', expanded ? `Show ${overflow} more models` : 'Show fewer models');
+    });
+    rail.appendChild(toggle);
   }
 }
 
@@ -801,24 +888,44 @@ function render() {
   if (tzEl) tzEl.textContent = TZ_LABEL;
   renderLegendCap();
 
-  // Remap hourly from UTC to local before drawing arcs
-  const localHourly = (data.hourly || []).map(e => ({ ...e, hour: utcHourToLocal(e.hour) }));
-  const localNowH   = new Date().getHours();
+  // Store feed freshness for stale-ribbon checks (used by applyModel too)
+  _feedLastUpdated = (data.verdict && data.verdict.lastUpdated) || data.fetchedAt || null;
 
-  // Cold-start: fewer than 6 hours of data = warming up
-  const dataCount = localHourly.filter(e => e.average_ms && e.average_ms > 0).length;
-  const coldStart = dataCount < 6;
+  // Populate model selector
+  const sel = document.getElementById('model-select');
+  sel.innerHTML = '';
+  const allOpt = document.createElement('option');
+  allOpt.value = '__all__'; allOpt.textContent = 'All models (overall)';
+  sel.appendChild(allOpt);
+  (data.models || []).forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.name;
+    opt.textContent = m.name.replace(/^anthropic-/, '');
+    sel.appendChild(opt);
+  });
 
-  drawDialChrome(localHourly);
-  drawArcs(localHourly, coldStart);
-  drawNowRing(localNowH);
-  animateHand();
-  setVerdict(data);
+  // Restore selection from localStorage if that model still exists
+  const saved = localStorage.getItem('pulse_model');
+  const savedExists = saved && (saved === '__all__' || (data.models || []).some(m => m.name === saved));
+  sel.value = savedExists ? saved : '__all__';
+
+  // Status badge always shows overall service status
   renderStatus(data);
   render24hStrip(data.trend24h);
   renderWeekStrip(data.week);
   renderModels(data.models);
+
+  // Draw dial + verdict for the selected model (or overall)
+  applyModel(sel.value);
 }
+
+// Wire model selector change
+document.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('model-select').addEventListener('change', function () {
+    localStorage.setItem('pulse_model', this.value);
+    applyModel(this.value);
+  });
+});
 
 // Live freshness: show when the data was last updated and tick the "ago" every minute,
 // so the page feels current between the 15-min reloads (no manual refresh needed).
@@ -837,9 +944,9 @@ setInterval(updateStatusAge, 60000);
 
 window.addEventListener('DOMContentLoaded', render);
 
-// Auto-refresh: reload every 15 min so a newly-fetched data.js is picked up on its own.
+// Auto-refresh: reload every 5 min so a newly-fetched data.js is picked up on its own.
 // Real freshness depends on the scheduled fetch task regenerating data.js (see setup-task.ps1).
-setInterval(function () { location.reload(); }, 15 * 60 * 1000);
+setInterval(function () { location.reload(); }, 5 * 60 * 1000);
 </script>
 </body>
 </html>
