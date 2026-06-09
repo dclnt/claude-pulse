@@ -219,28 +219,6 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 .week-x { display: flex; gap: 6px; margin-top: 7px; }
 .week-x span { flex: 1; text-align: center; font-size: .58rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
 
-/* ---- Model chips rail ---- */
-.rail { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.chip {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 6px 12px; border-radius: 999px; font-size: .68rem;
-  background: rgba(15,19,29,.7); border: 1px solid var(--hair);
-  font-family: 'JetBrains Mono', monospace; color: var(--text); letter-spacing: .02em;
-}
-.chip .d { width: 5px; height: 5px; border-radius: 50%; background: var(--grey); }
-.chip .d.ok  { background: var(--ok);  box-shadow: 0 0 6px var(--ok); }
-.chip .d.deg { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
-.chip .d.bad { background: var(--bad);  box-shadow: 0 0 6px var(--bad); }
-.chip .ms { color: var(--muted); font-size: .64rem; }
-
-/* hidden chips (revealed by toggle) */
-.chip.hidden { display: none; }
-.chip.more-toggle {
-  color: var(--muted); cursor: pointer; background: none;
-  border: 1px dashed var(--border); min-height: 36px;
-}
-.chip.more-toggle:hover { border-color: var(--accent); color: var(--accent); }
-.chip.more-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 /* ---- ⓘ panel ---- */
 #info-panel {
@@ -400,7 +378,6 @@ footer a:hover { text-decoration: underline; }
   .legend .bar { width: 130px; }
   header { flex-direction: column; align-items: stretch; gap: 10px; }
   .status-wrap { align-self: flex-start; align-items: flex-start; }
-  .chip.more-toggle { min-height: 40px; padding: 8px 14px; }
   #incident-banner { font-size: .68rem; }
   #recon-strip { font-size: .65rem; }
   /* Recent incidents collapsed by default on mobile — toggle opens it */
@@ -514,7 +491,6 @@ footer a:hover { text-decoration: underline; }
   </div>
 
   <!-- Model chips -->
-  <div class="rail" id="rail" role="list" aria-label="Model status"></div>
 
   <!-- Recent incident history (collapsed on mobile) -->
   <div id="recent-incidents-wrap" style="display:none">
@@ -1192,59 +1168,6 @@ function renderWeekStrip(week) {
 }
 
 // ---- Model chips rail ----
-function renderModels(models) {
-  const rail = document.getElementById('rail');
-  rail.innerHTML = '';
-  if (!models || models.length === 0) return;
-
-  const VISIBLE = 8;
-  const overflow = models.length - VISIBLE;
-
-  models.forEach((m, i) => {
-    const chip = document.createElement('div');
-    chip.className = 'chip';
-    if (i >= VISIBLE) chip.classList.add('hidden');
-    chip.setAttribute('role', 'listitem');
-    const dot = document.createElement('span');
-    dot.className = 'd';
-    const st = (m.status || 'unknown').toLowerCase();
-    if (st === 'operational')                  dot.classList.add('ok');
-    else if (st === 'degraded')                dot.classList.add('deg');
-    else if (st === 'major' || st === 'outage') dot.classList.add('bad');
-    const name = m.name.replace(/^anthropic-/, '');
-    const nameEl = document.createElement('span');
-    nameEl.textContent = name;
-    chip.appendChild(dot);
-    chip.appendChild(nameEl);
-    const last15 = m.metrics && m.metrics.last15MinAverage;
-    if (last15) {
-      const msEl = document.createElement('span');
-      msEl.className = 'ms';
-      msEl.textContent = fmtMs(Math.round(last15));
-      chip.appendChild(msEl);
-    }
-    chip.title = `${name} — ${st}${last15 ? ' · ' + fmtMs(Math.round(last15)) : ''}`;
-    rail.appendChild(chip);
-  });
-
-  if (overflow > 0) {
-    const toggle = document.createElement('button');
-    toggle.className = 'chip more-toggle';
-    toggle.setAttribute('aria-label', `Show ${overflow} more models`);
-    toggle.textContent = `+${overflow} more`;
-    toggle.addEventListener('click', function () {
-      const expanded = toggle.dataset.expanded === 'true';
-      rail.querySelectorAll('.chip.hidden').forEach(c => {
-        c.style.display = expanded ? '' : 'inline-flex';
-      });
-      toggle.dataset.expanded = String(!expanded);
-      toggle.textContent = expanded ? `+${overflow} more` : 'show less';
-      toggle.setAttribute('aria-label', expanded ? `Show ${overflow} more models` : 'Show fewer models');
-    });
-    rail.appendChild(toggle);
-  }
-}
-
 // ---- Info toggle ----
 function toggleInfo() {
   const p   = document.getElementById('info-panel');
