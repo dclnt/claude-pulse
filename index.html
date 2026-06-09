@@ -302,6 +302,88 @@ footer a:hover { text-decoration: underline; }
 /* ---- Cold-start arc reveal ---- */
 @keyframes arc-appear { from{opacity:0} to{opacity:1} }
 
+/* ---- Incident banner (top, full-width, dismissible) ---- */
+#incident-banner {
+  display: none; position: relative;
+  padding: 11px 42px 11px 16px; border-radius: 8px; margin-bottom: 16px;
+  font-size: .72rem; font-family: 'JetBrains Mono', monospace; letter-spacing: .05em;
+  line-height: 1.5;
+}
+#incident-banner.minor  { background: rgba(244,182,82,.1);  border: 1px solid rgba(244,182,82,.45); color: var(--amber); }
+#incident-banner.major  { background: rgba(226,88,92,.1);   border: 1px solid rgba(226,88,92,.45);  color: #f08080; }
+#incident-banner.critical { background: rgba(226,88,92,.18); border: 1px solid rgba(226,88,92,.65); color: #ff9999; }
+#incident-banner .banner-dismiss {
+  position: absolute; top: 8px; right: 10px; background: none; border: none;
+  cursor: pointer; font-size: 1rem; line-height: 1; color: inherit; opacity: .6;
+  padding: 2px 5px;
+}
+#incident-banner .banner-dismiss:hover { opacity: 1; }
+#incident-banner a { color: inherit; text-decoration: underline; opacity: .85; }
+#incident-banner a:hover { opacity: 1; }
+
+/* ---- Reconciliation strip ---- */
+#recon-strip {
+  display: none; text-align: center; font-size: .7rem; letter-spacing: .06em;
+  font-family: 'JetBrains Mono', monospace; padding: 7px 14px; border-radius: 6px;
+  margin-bottom: 14px; border: 1px solid transparent;
+}
+#recon-strip.all-clear   { background: rgba(70,201,139,.08);  border-color: rgba(70,201,139,.2);  color: var(--ok); }
+#recon-strip.divergence  { background: rgba(244,182,82,.08);  border-color: rgba(244,182,82,.25); color: var(--amber); }
+#recon-strip.incident    { background: rgba(226,88,92,.08);   border-color: rgba(226,88,92,.25);  color: #f08080; }
+
+/* ---- Confidence chip ---- */
+#confidence-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 999px; font-size: .6rem;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: .07em; text-transform: uppercase;
+  border: 1px solid var(--border); background: rgba(15,19,29,.7);
+  cursor: default; vertical-align: middle; margin-left: 6px;
+}
+#confidence-chip .c-dot { width: 5px; height: 5px; border-radius: 50%; }
+#confidence-chip.high .c-dot { background: var(--ok);   box-shadow: 0 0 5px var(--ok); }
+#confidence-chip.med  .c-dot { background: var(--warn); box-shadow: 0 0 5px var(--warn); }
+#confidence-chip.low  .c-dot { background: var(--bad);  box-shadow: 0 0 5px var(--bad); }
+
+/* ---- Deviation + peak-hour lines below verdict ---- */
+#verdict-deviation { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); margin-top: 3px; }
+#verdict-peak      { font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--dim);   margin-top: 2px; }
+
+/* ---- Recent incident history ---- */
+#recent-incidents-wrap {
+  margin-top: 18px;
+  border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden;
+}
+#recent-incidents-toggle {
+  width: 100%; padding: 10px 16px; background: var(--surface);
+  border: none; cursor: pointer; text-align: left;
+  font-family: 'JetBrains Mono', monospace; font-size: .62rem; font-weight: 500;
+  color: var(--muted); letter-spacing: .1em; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: space-between;
+}
+#recent-incidents-toggle:hover { color: var(--text); }
+#recent-incidents-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+#recent-incidents-toggle .toggle-arrow { transition: transform .2s; }
+#recent-incidents-toggle[aria-expanded="true"] .toggle-arrow { transform: rotate(180deg); }
+#recent-incidents-list {
+  display: none; padding: 10px 16px 14px;
+  background: rgba(10,14,22,.7);
+}
+#recent-incidents-list.open { display: block; }
+.incident-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; border-bottom: 1px solid var(--hair);
+  font-size: .7rem; font-family: 'JetBrains Mono', monospace; color: var(--muted);
+}
+.incident-row:last-child { border-bottom: none; }
+.incident-row .imp-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.incident-row .imp-dot.none     { background: var(--grey); }
+.incident-row .imp-dot.minor    { background: var(--warn); }
+.incident-row .imp-dot.major    { background: #f08080; }
+.incident-row .imp-dot.critical { background: var(--bad); box-shadow: 0 0 6px var(--bad); }
+.incident-row .inc-name { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.incident-row .inc-meta { color: var(--dim); white-space: nowrap; font-size: .62rem; }
+
 /* ---- Reduced motion ---- */
 @media (prefers-reduced-motion: reduce) {
   #status-dot, #verdict .sub::before { animation: none !important; }
@@ -319,9 +401,16 @@ footer a:hover { text-decoration: underline; }
   header { flex-direction: column; align-items: stretch; gap: 10px; }
   .status-wrap { align-self: flex-start; align-items: flex-start; }
   .chip.more-toggle { min-height: 40px; padding: 8px 14px; }
+  #incident-banner { font-size: .68rem; }
+  #recon-strip { font-size: .65rem; }
+  /* Recent incidents collapsed by default on mobile — toggle opens it */
+  #recent-incidents-list { display: none; }
+  #recent-incidents-list.open { display: block; }
+  .incident-row .inc-name { font-size: .68rem; }
 }
 @media (max-width: 400px) {
   #verdict .num { font-size: 1.8rem; }
+  #confidence-chip { font-size: .55rem; padding: 2px 6px; }
 }
 </style>
 </head>
@@ -329,6 +418,15 @@ footer a:hover { text-decoration: underline; }
 <div class="app" role="main">
 
   <div id="sample-banner" role="alert" aria-live="polite">SAMPLE DATA — visual preview only, not real measurements</div>
+
+  <!-- Incident banner: shown when active_incidents non-empty or indicator != none. Per-session dismissible. -->
+  <div id="incident-banner" role="alert" aria-live="assertive">
+    <span id="incident-banner-text"></span>
+    <button class="banner-dismiss" id="incident-dismiss" aria-label="Dismiss incident banner">&#x2715;</button>
+  </div>
+
+  <!-- Reconciliation strip: one-line signal near verdict -->
+  <div id="recon-strip" role="status" aria-live="polite"></div>
 
   <header>
     <div>
@@ -381,8 +479,10 @@ footer a:hover { text-decoration: underline; }
                 filter="url(#bloom)" aria-hidden="true"/>
         </svg>
         <div id="verdict" aria-live="polite" aria-atomic="true">
-          <div class="num" id="verdict-num">--</div>
+          <div class="num" id="verdict-num">--<span id="confidence-chip" class="med" title="" role="img" aria-label="Confidence"><span class="c-dot"></span><span id="confidence-label">MED</span></span></div>
           <div class="delta" id="verdict-delta"></div>
+          <div id="verdict-deviation"></div>
+          <div id="verdict-peak"></div>
           <div class="sub">right now</div>
         </div>
       </div>
@@ -413,6 +513,17 @@ footer a:hover { text-decoration: underline; }
     </div>
   </div>
 
+  <!-- Model chips -->
+  <div class="rail" id="rail" role="list" aria-label="Model status"></div>
+
+  <!-- Recent incident history (collapsed on mobile) -->
+  <div id="recent-incidents-wrap" style="display:none">
+    <button id="recent-incidents-toggle" aria-expanded="false" aria-controls="recent-incidents-list">
+      <span>Recent incidents</span>
+      <span class="toggle-arrow" aria-hidden="true">&#9660;</span>
+    </button>
+    <div id="recent-incidents-list" role="list" aria-label="Recent incidents"></div>
+  </div>
 
   <footer>
     measured by <a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM Overwatch</a> &middot; ~5 min refresh<br>
@@ -423,7 +534,10 @@ footer a:hover { text-decoration: underline; }
       <p><strong>What is measured:</strong> <strong>Response time in milliseconds, not answer quality.</strong> Measurements come from LLM Overwatch's servers to Anthropic's API — not from your machine. A fast response can still be wrong; a slow one can still be correct.</p>
       <p><strong>Dial:</strong> Each arc segment is one hour of the day. Brighter ice-cyan = faster (lower ms). Amber = unusually slow. The now-hand sweeps in real time, confined to the arc band.</p>
       <p><strong>Timezone:</strong> LLM Overwatch publishes hours in UTC; this page converts them to your local timezone (<span id="tz-name"></span>) so the dial matches your day. Conversion uses your device's current UTC offset, so it follows daylight saving automatically.</p>
-      <p><strong>Status badge:</strong> Taken directly from LLM Overwatch's <code>providers.anthropic.status</code> field and <code>overview.lastUpdated</code>.</p>
+      <p><strong>Status badge:</strong> When available, pulled from the official <a href="https://status.claude.com" target="_blank" rel="noopener">status.claude.com</a> API (<code>summary.json</code>). If that feed is unreachable, falls back to LLM Overwatch's measured status — labeled "(measured)".</p>
+      <p><strong>Composite latency (the center number):</strong> A recency-weighted blend of Overwatch's own last-15-min, last-hour, and all-time averages — giving more weight to fresher data. This is a smarter read of one source's own numbers, not aggregated across providers. Deviation shown vs. the all-time baseline.</p>
+      <p><strong>Confidence chip:</strong> HIGH/MED/LOW signal next to the number. It drops to MED or LOW when last-15-min samples are thin, data is stale (&gt;20 min old), or the hourly average is missing. Hover for the reason.</p>
+      <p><strong>Reconciliation strip:</strong> Compares the official status indicator against measured latency. "Operational, but latency N% above normal" means the status page shows green while measured response times are elevated — a common gap.</p>
       <p><strong>Stale data:</strong> If the feed hasn't updated in over 60 minutes, a ribbon appears above the dial. The last known data is still shown but greyed out.</p>
     </div>
   </footer>
@@ -599,12 +713,28 @@ function animateHand() {
   frame();
 }
 
+// ---- Confidence chip renderer ----
+function renderConfidenceChip(confidence) {
+  const chip = document.getElementById('confidence-chip');
+  const label = document.getElementById('confidence-label');
+  if (!chip || !confidence) { if (chip) chip.style.display = 'none'; return; }
+  chip.style.display = 'inline-flex';
+  const level = (confidence.level || 'LOW').toLowerCase();
+  chip.className = level; // high / med / low
+  label.textContent = confidence.level || 'LOW';
+  const sampleInfo = confidence.sample_count ? ` · ${confidence.sample_count} samples` : '';
+  chip.title = `Confidence: ${confidence.level}${sampleInfo}\n${confidence.reason || ''}`;
+  chip.setAttribute('aria-label', `Confidence: ${confidence.level}. ${confidence.reason || ''}`);
+}
+
 // ---- Verdict (count-up + soft glow) ----
-// verdictObj: { last15MinAverage_ms, allTimeAverage_ms, performanceDiff_ms, status, lastUpdated }
+// reportObj: the report{} block (preferred); verdictObj used as fallback for stale-ribbon + legacy delta
 // feedLastUpdated: the overall feed's lastUpdated timestamp (for stale-ribbon check)
-function setVerdict(verdictObj, feedLastUpdated) {
+function setVerdict(verdictObj, feedLastUpdated, reportObj) {
   const numEl   = document.getElementById('verdict-num');
   const deltaEl = document.getElementById('verdict-delta');
+  const devEl   = document.getElementById('verdict-deviation');
+  const peakEl  = document.getElementById('verdict-peak');
   const ribbon  = document.getElementById('stale-ribbon');
 
   // Stale check uses the overall feed freshness, not per-model
@@ -621,38 +751,154 @@ function setVerdict(verdictObj, feedLastUpdated) {
     }
   }
 
-  const last15  = verdictObj.last15MinAverage_ms;
-  const diff    = verdictObj.performanceDiff_ms;
-  const allTime = verdictObj.allTimeAverage_ms;
+  // Prefer composite report over raw last15
+  const useReport = reportObj && reportObj.current_ms != null;
+  const displayMs = useReport ? reportObj.current_ms : verdictObj.last15MinAverage_ms;
+  const baselineMs = useReport ? reportObj.baseline_ms : verdictObj.allTimeAverage_ms;
+  const devPct = useReport ? reportObj.deviation_pct : null;
 
-  if (!last15) {
-    numEl.textContent = '--';
+  // Confidence chip
+  renderConfidenceChip(useReport ? reportObj.confidence : null);
+
+  if (!displayMs) {
+    // Clear the num text but keep the chip element intact
+    const chip = document.getElementById('confidence-chip');
+    const chipOuter = chip ? chip.outerHTML : '';
+    numEl.innerHTML = '--' + chipOuter;
     deltaEl.textContent = '';
+    if (devEl) devEl.textContent = '';
+    if (peakEl) peakEl.textContent = '';
     return;
   }
 
-  // Count-up animation
-  const target = last15, dur = 600, t0 = performance.now();
+  // Count-up animation — animates the text node before the chip
+  const chip = document.getElementById('confidence-chip');
+  const chipHTML = chip ? chip.outerHTML : '';
+  const target = displayMs, dur = 600, t0 = performance.now();
   function countUp(t) {
     const p   = Math.min((t - t0) / dur, 1);
     const val = Math.round(target * p);
-    numEl.textContent = val >= 1000 ? `${(val / 1000).toFixed(1)}s` : `${val}ms`;
+    const valStr = val >= 1000 ? `${(val / 1000).toFixed(1)}s` : `${val}ms`;
+    numEl.innerHTML = valStr + chipHTML;
     if (p < 1) { requestAnimationFrame(countUp); return; }
     numEl.classList.remove('glow');
-    void numEl.offsetWidth; // reflow to restart animation
+    void numEl.offsetWidth;
     numEl.classList.add('glow');
+    // Re-attach confidence chip listener now that DOM was re-written
+    renderConfidenceChip(useReport ? reportObj.confidence : null);
   }
   requestAnimationFrame(countUp);
 
-  // Delta line — amber, direction vs all-time avg
-  if (diff !== null && diff !== undefined && allTime) {
-    const pct = Math.round(Math.abs(diff) / allTime * 100);
-    const dir = diff > 0 ? 'slower' : 'faster';
-    const arrow = diff > 0 ? '▲' : '▼';
-    deltaEl.textContent = `${arrow} ${pct}% ${dir} than usual`;
+  // Delta line — use deviation_pct from report if available, else fall back to performanceDiff
+  if (devPct != null && baselineMs) {
+    const arrow = devPct > 0 ? '▲' : '▼';
+    const dir   = devPct > 0 ? 'above' : 'below';
+    deltaEl.textContent = `${arrow} ${Math.abs(Math.round(devPct))}% ${dir} normal`;
   } else {
-    deltaEl.textContent = '';
+    const diff   = verdictObj.performanceDiff_ms;
+    const allTime = verdictObj.allTimeAverage_ms;
+    if (diff !== null && diff !== undefined && allTime) {
+      const pct = Math.round(Math.abs(diff) / allTime * 100);
+      const dir = diff > 0 ? 'slower' : 'faster';
+      const arrow = diff > 0 ? '▲' : '▼';
+      deltaEl.textContent = `${arrow} ${pct}% ${dir} than usual`;
+    } else {
+      deltaEl.textContent = '';
+    }
   }
+
+  // Deviation ms line
+  if (devEl && devPct != null && baselineMs) {
+    const diffMs = displayMs - baselineMs;
+    const sign = diffMs >= 0 ? '+' : '';
+    devEl.textContent = `${sign}${Math.round(diffMs)}ms vs ${fmtMs(baselineMs)} baseline`;
+  } else if (devEl) {
+    devEl.textContent = '';
+  }
+
+  // Typical for this hour
+  if (peakEl && useReport && reportObj.inputs && reportObj.inputs.peakHourExpected != null) {
+    peakEl.textContent = `typical this hour: ${fmtMs(reportObj.inputs.peakHourExpected)}`;
+  } else if (peakEl) {
+    peakEl.textContent = '';
+  }
+}
+
+// ---- Per-model report (client-side recompute) ----
+// Uses model metrics + byHourData since lastHour isn't available per-model.
+function computeModelReport(m) {
+  const metrics = m.metrics || {};
+  const last15  = metrics.last15MinAverage;
+  const allTime = metrics.allTimeAverage;
+  const count   = metrics.dataCount || 0;
+  const lastUpd = metrics.lastUpdated;
+
+  if (!last15 && !allTime) return null;
+
+  // Use byHourData[currentUTCHour] as the smoother (hour-of-day context)
+  const nowUTCHour = new Date().getUTCHours();
+  const byHourEntry = (m.byHourData || []).find(e => e.hour === nowUTCHour);
+  const byHourMs = byHourEntry && byHourEntry.average_ms ? byHourEntry.average_ms : null;
+
+  // Blend: if we have last15 + byHour, weight 0.6/0.3/0.1; thin last15 shifts to byHour
+  const thin = count < 10;
+  let current_ms = null;
+  if (last15 && byHourMs && allTime) {
+    if (thin) {
+      current_ms = 0.9 * byHourMs + 0.1 * allTime;
+    } else {
+      current_ms = 0.6 * last15 + 0.3 * byHourMs + 0.1 * allTime;
+    }
+  } else if (last15 && allTime) {
+    current_ms = 0.85 * last15 + 0.15 * allTime;
+  } else if (byHourMs && allTime) {
+    current_ms = 0.9 * byHourMs + 0.1 * allTime;
+  } else {
+    current_ms = last15 || allTime;
+  }
+  current_ms = Math.round(current_ms);
+  const baseline_ms = allTime ? Math.round(allTime) : null;
+  const deviation_pct = baseline_ms ? Math.round((current_ms - baseline_ms) / baseline_ms * 100 * 10) / 10 : null;
+
+  let verdict = 'UNKNOWN';
+  if (deviation_pct != null) {
+    if (deviation_pct <= -10)      verdict = 'FAST';
+    else if (deviation_pct <= 15)  verdict = 'NORMAL';
+    else if (deviation_pct <= 50)  verdict = 'SLOW';
+    else                           verdict = 'VERY_SLOW';
+  }
+
+  // Confidence
+  let score = 1.0;
+  const reasons = [];
+  if (thin) { score -= 0.35; reasons.push('few samples'); }
+  if (!byHourMs) { score -= 0.15; reasons.push('no hourly data'); }
+  if (lastUpd) {
+    const ageMin = (Date.now() - new Date(lastUpd).getTime()) / 60000;
+    if (ageMin > 20) { score -= 0.3; reasons.push('data >20min old'); }
+  }
+  score = Math.max(0, Math.round(score * 100) / 100);
+  const level = score >= 0.7 ? 'HIGH' : (score >= 0.4 ? 'MED' : 'LOW');
+
+  return {
+    model_scope: m.name,
+    current_ms,
+    baseline_ms,
+    deviation_pct,
+    verdict,
+    confidence: {
+      score,
+      level,
+      sample_count: count,
+      reason: reasons.length ? reasons.join('; ') : 'good sample coverage',
+    },
+    inputs: {
+      last15MinAverage: last15,
+      lastHourAverage: byHourMs,
+      peakHourExpected: byHourMs,
+      allTimeAverage: allTime,
+    },
+  };
 }
 
 // ---- Apply model selection (re-renders dial + verdict center) ----
@@ -661,21 +907,23 @@ let _feedLastUpdated = null;
 function applyModel(sel) {
   const data = window.PULSE_DATA;
   if (!data) return;
-  let hourlySrc, verdictObj;
+  let hourlySrc, verdictObj, reportObj;
   if (sel === '__all__') {
     hourlySrc  = data.hourly;
     verdictObj = data.verdict;
+    reportObj  = data.report || null;
   } else {
     const m = data.models && data.models.find(x => x.name === sel);
     if (!m) return;
     hourlySrc  = m.byHourData;
     verdictObj = {
-      last15MinAverage_ms:  m.metrics.last15MinAverage,
-      allTimeAverage_ms:    m.metrics.allTimeAverage,
-      performanceDiff_ms:   m.metrics.performanceDiff,
+      last15MinAverage_ms:  m.metrics && m.metrics.last15MinAverage,
+      allTimeAverage_ms:    m.metrics && m.metrics.allTimeAverage,
+      performanceDiff_ms:   m.metrics && m.metrics.performanceDiff,
       status:               m.status,
-      lastUpdated:          m.metrics.lastUpdated
+      lastUpdated:          m.metrics && m.metrics.lastUpdated
     };
+    reportObj = computeModelReport(m);
   }
   const localHourly = (hourlySrc || []).map(e => ({ ...e, hour: utcHourToLocal(e.hour) }));
   const dataCount   = localHourly.filter(e => e.average_ms && e.average_ms > 0).length;
@@ -684,22 +932,44 @@ function applyModel(sel) {
   drawArcs(localHourly, coldStart);
   drawNowRing(new Date().getHours());
   animateHand();
-  setVerdict(verdictObj, _feedLastUpdated);
+  setVerdict(verdictObj, _feedLastUpdated, reportObj);
 }
 
 // ---- Status pill ----
+// Uses official status.indicator when available; falls back to measured (Overwatch verdict).
 function renderStatus(data) {
   const pill    = document.getElementById('status-pill');
   const labelEl = document.getElementById('status-label');
-  const timeEl  = document.getElementById('status-time');
   const v       = data.verdict;
-  const level   = (v.status || 'unknown').toLowerCase();
+  const st      = data.status || {};
+  const official = st.official;
 
   pill.className = '';
-  if      (level === 'operational')             { pill.classList.add('ok');      labelEl.textContent = 'Operational'; }
-  else if (level === 'degraded')                { pill.classList.add('degraded'); labelEl.textContent = 'Degraded'; }
-  else if (level === 'major' || level === 'outage') { pill.classList.add('major'); labelEl.textContent = 'Outage'; }
-  else                                          { pill.classList.add('unknown'); labelEl.textContent = 'Status Unknown'; }
+
+  if (official) {
+    // Map official indicator -> pill class
+    const ind = (official.indicator || 'none').toLowerCase();
+    if (ind === 'none') {
+      pill.classList.add('ok');
+      labelEl.textContent = official.description || 'Operational';
+    } else if (ind === 'minor') {
+      pill.classList.add('degraded');
+      labelEl.textContent = official.description || 'Minor Issues';
+    } else if (ind === 'major' || ind === 'critical') {
+      pill.classList.add('major');
+      labelEl.textContent = official.description || 'Major Outage';
+    } else {
+      pill.classList.add('unknown');
+      labelEl.textContent = official.description || 'Status Unknown';
+    }
+  } else {
+    // Fallback to measured
+    const level = (v.status || 'unknown').toLowerCase();
+    if      (level === 'operational')                  { pill.classList.add('ok');      labelEl.textContent = 'Operational (measured)'; }
+    else if (level === 'degraded')                     { pill.classList.add('degraded'); labelEl.textContent = 'Degraded (measured)'; }
+    else if (level === 'major' || level === 'outage')  { pill.classList.add('major');    labelEl.textContent = 'Outage (measured)'; }
+    else                                               { pill.classList.add('unknown');  labelEl.textContent = 'Status Unknown'; }
+  }
 
   const ts = v.lastUpdated || data.fetchedAt;
   if (ts) {
@@ -708,6 +978,112 @@ function renderStatus(data) {
     const d = new Date(ts);
     pill.setAttribute('aria-label', `Service status: ${labelEl.textContent}, data updated ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')} ${TZ_LABEL}`);
   }
+}
+
+// ---- Incident banner ----
+// Shown when active_incidents is non-empty or official indicator != none. Per-session dismissible.
+let _incidentBannerDismissed = false;
+function renderIncidentBanner(data) {
+  const banner = document.getElementById('incident-banner');
+  const textEl = document.getElementById('incident-banner-text');
+  const st = data.status || {};
+  const official = st.official;
+  const active = st.active_incidents || [];
+
+  const hasActive = active.length > 0 || (official && official.indicator && official.indicator !== 'none');
+  if (!hasActive || _incidentBannerDismissed) { banner.style.display = 'none'; return; }
+
+  // Worst impact
+  const impacts = active.map(i => i.impact || 'none');
+  if (official && official.indicator && official.indicator !== 'none') impacts.push(official.indicator);
+  const impactRank = { critical: 3, major: 2, minor: 1, none: 0 };
+  const worst = impacts.reduce((a, b) => impactRank[b] > impactRank[a] ? b : a, 'minor');
+
+  banner.className = worst === 'critical' ? 'critical' : (worst === 'major' ? 'major' : 'minor');
+
+  if (active.length > 0) {
+    const inc = active[0];
+    textEl.innerHTML = `<strong>${inc.name}</strong> &mdash; ${inc.status || 'ongoing'} &nbsp;<a href="https://status.claude.com" target="_blank" rel="noopener">status.claude.com &#x2197;</a>`;
+  } else if (official) {
+    textEl.innerHTML = `<strong>${official.description}</strong> &nbsp;<a href="https://status.claude.com" target="_blank" rel="noopener">status.claude.com &#x2197;</a>`;
+  }
+
+  banner.style.display = 'block';
+}
+
+// ---- Reconciliation strip ----
+function renderReconStrip(data) {
+  const strip = document.getElementById('recon-strip');
+  const st = data.status || {};
+  const recon = st.reconciliation;
+  if (!recon) { strip.style.display = 'none'; return; }
+
+  strip.style.display = 'block';
+  strip.className = '';
+  const state = recon.state || 'ALL_CLEAR';
+  if (state === 'ALL_CLEAR') {
+    strip.classList.add('all-clear');
+  } else if (state === 'LATENCY_DIVERGENCE') {
+    strip.classList.add('divergence');
+  } else {
+    // OFFICIAL_INCIDENT or DEGRADED_BOTH — red takes precedence only if no banner
+    strip.classList.add('incident');
+  }
+  strip.textContent = recon.message || '';
+}
+
+// ---- Recent incident history ----
+function renderRecentIncidents(data) {
+  const wrap = document.getElementById('recent-incidents-wrap');
+  const list = document.getElementById('recent-incidents-list');
+  const st = data.status || {};
+  const recent = st.recent_incidents || [];
+
+  if (recent.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  list.innerHTML = '';
+
+  recent.forEach(inc => {
+    const row = document.createElement('div');
+    row.className = 'incident-row';
+    row.setAttribute('role', 'listitem');
+
+    const dot = document.createElement('span');
+    dot.className = 'imp-dot ' + (inc.impact || 'none');
+    row.appendChild(dot);
+
+    const name = document.createElement('span');
+    name.className = 'inc-name';
+    name.textContent = inc.name || 'Unknown incident';
+    name.title = inc.name || '';
+    row.appendChild(name);
+
+    const meta = document.createElement('span');
+    meta.className = 'inc-meta';
+    const haAgo = inc.hours_ago != null ? Math.round(inc.hours_ago) : null;
+    const durMin = inc.duration_min;
+    const durStr = durMin != null ? (durMin >= 60 ? `${Math.round(durMin/60)}h` : `${durMin}m`) : null;
+    let metaText = 'resolved';
+    if (haAgo != null) metaText += ` ${haAgo}h ago`;
+    if (durStr) metaText += ` · ${durStr}`;
+    meta.textContent = metaText;
+    row.appendChild(meta);
+
+    list.appendChild(row);
+  });
+}
+
+// ---- Wire recent incidents toggle ----
+function wireRecentToggle() {
+  const btn = document.getElementById('recent-incidents-toggle');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    const list = document.getElementById('recent-incidents-list');
+    const open = list.classList.contains('open');
+    list.classList.toggle('open', !open);
+    btn.setAttribute('aria-expanded', String(!open));
+  });
+  // Collapsed by default on mobile (max 600px): already collapsed since list has no 'open' class
 }
 
 // ---- Legend caption (local tz) ----
@@ -914,6 +1290,9 @@ function render() {
 
   // Status badge always shows overall service status
   renderStatus(data);
+  renderIncidentBanner(data);
+  renderReconStrip(data);
+  renderRecentIncidents(data);
   render24hStrip(data.trend24h);
   renderWeekStrip(data.week);
 
@@ -921,12 +1300,24 @@ function render() {
   applyModel(sel.value);
 }
 
-// Wire model selector change
+// Wire model selector change + dismiss + toggle
 document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('model-select').addEventListener('change', function () {
     localStorage.setItem('pulse_model', this.value);
     applyModel(this.value);
   });
+
+  // Incident banner dismiss (per-session: hides until next page load)
+  const dismissBtn = document.getElementById('incident-dismiss');
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', function () {
+      _incidentBannerDismissed = true;
+      document.getElementById('incident-banner').style.display = 'none';
+    });
+  }
+
+  // Recent incidents toggle
+  wireRecentToggle();
 });
 
 // Live wall clock: the top-right time is the ACTUAL current local time, ticking every
