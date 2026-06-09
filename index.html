@@ -1001,11 +1001,20 @@ function renderIncidentBanner(data) {
 
   banner.className = worst === 'critical' ? 'critical' : (worst === 'major' ? 'major' : 'minor');
 
+  // Safe DOM construction (external feed strings via textContent, never innerHTML)
+  textEl.textContent = '';
+  const strong = document.createElement('strong');
+  const link = document.createElement('a');
+  link.href = 'https://status.claude.com';
+  link.target = '_blank'; link.rel = 'noopener';
+  link.textContent = 'status.claude.com ↗';
   if (active.length > 0) {
     const inc = active[0];
-    textEl.innerHTML = `<strong>${inc.name}</strong> &mdash; ${inc.status || 'ongoing'} &nbsp;<a href="https://status.claude.com" target="_blank" rel="noopener">status.claude.com &#x2197;</a>`;
+    strong.textContent = inc.name || 'Active incident';
+    textEl.append(strong, document.createTextNode(' — ' + (inc.status || 'ongoing') + '  '), link);
   } else if (official) {
-    textEl.innerHTML = `<strong>${official.description}</strong> &nbsp;<a href="https://status.claude.com" target="_blank" rel="noopener">status.claude.com &#x2197;</a>`;
+    strong.textContent = official.description || 'Service status';
+    textEl.append(strong, document.createTextNode('  '), link);
   }
 
   banner.style.display = 'block';
