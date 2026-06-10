@@ -191,6 +191,16 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
   margin-bottom: 14px; display: flex; justify-content: space-between;
 }
 .card-title .v { color: var(--accent); }
+/* ---- Fable latency card (Artificial Analysis source — separate from the Overwatch dial) ---- */
+.fable-card { margin-top: 18px; }
+.fable-card .card-title .v a { color: var(--accent); text-decoration: none; }
+.fable-card .card-title .v a:hover { text-decoration: underline; }
+.fable-metrics { display: flex; gap: 26px; flex-wrap: wrap; }
+.fable-metric { display: flex; flex-direction: column; gap: 4px; }
+.fm-num { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
+.fm-lab { font-family: 'JetBrains Mono', monospace; font-size: .54rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+.fable-note { margin-top: 14px; font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--dim); line-height: 1.55; letter-spacing: .02em; }
+.fable-note strong { color: var(--amber); font-weight: 500; }
 /* 24h strip */
 .strip { display: flex; gap: 2px; height: 56px; align-items: flex-end; }
 .strip .c {
@@ -490,6 +500,31 @@ footer a:hover { text-decoration: underline; }
     </div>
   </div>
 
+  <!-- Claude Fable 5 latency — sourced from Artificial Analysis (NOT Overwatch; separate methodology) -->
+  <div id="fable-card" class="card fable-card" role="region" aria-label="Claude Fable 5 latency" style="display:none">
+    <div class="card-title">
+      <span>Claude Fable&nbsp;5 latency</span>
+      <span class="v">via <a href="https://artificialanalysis.ai/models/claude-fable-5/providers" target="_blank" rel="noopener">Artificial&nbsp;Analysis</a></span>
+    </div>
+    <div class="fable-metrics">
+      <div class="fable-metric">
+        <div class="fm-num" id="fable-e2e">--</div>
+        <div class="fm-lab">end-to-end median</div>
+      </div>
+      <div class="fable-metric">
+        <div class="fm-num" id="fable-tps">--</div>
+        <div class="fm-lab">output speed</div>
+      </div>
+      <div class="fable-metric">
+        <div class="fm-num" id="fable-ttft">--</div>
+        <div class="fm-lab">time to first token</div>
+      </div>
+    </div>
+    <div class="fable-note">
+      <strong>72h median &middot; max-effort reasoning (includes thinking time)</strong> &mdash; not comparable to the dial's near-real-time response times. Single US vantage &middot; updates&nbsp;~every&nbsp;3h. <span id="fable-model"></span>
+    </div>
+  </div>
+
   <!-- Model chips -->
 
   <!-- Recent incident history (collapsed on mobile) -->
@@ -502,11 +537,12 @@ footer a:hover { text-decoration: underline; }
   </div>
 
   <footer>
-    measured by <a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM Overwatch</a> &middot; ~5 min refresh<br>
+    dial measured by <a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM Overwatch</a> (~5 min) &middot; Fable via <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a> (72h median)<br>
     <button id="info-toggle" aria-expanded="false" aria-controls="info-panel">&#9432; How this works</button>
     <div id="info-panel" role="region" aria-label="How this works">
       <h3>How this works</h3>
       <p><strong>Data source:</strong> <a href="https://llmoverwatch.com" target="_blank" rel="noopener">LLM Overwatch</a> runs continuous probes from their own servers and publishes a free public JSON feed. This page reads that feed every ~5 minutes and writes <code>data.js</code> locally.</p>
+      <p><strong>Claude Fable&nbsp;5:</strong> Overwatch does not track Fable. Its numbers come from <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a> as a <strong>72-hour median</strong>, refreshed ~every 3 hours (not live). Fable runs adaptive max-effort reasoning, so that median (~2 min end-to-end) <strong>includes thinking time</strong> — it is not comparable to the dial's near-real-time response times, and is shown in its own card rather than the dial.</p>
       <p><strong>What is measured:</strong> <strong>Response time in milliseconds, not answer quality.</strong> Measurements come from LLM Overwatch's servers to Anthropic's API — not from your machine. A fast response can still be wrong; a slow one can still be correct.</p>
       <p><strong>Dial:</strong> Each arc segment is one hour of the day. Brighter ice-cyan = faster (lower ms). Amber = unusually slow. The now-hand sweeps in real time, confined to the arc band.</p>
       <p><strong>Timezone:</strong> LLM Overwatch publishes hours in UTC; this page converts them to your local timezone (<span id="tz-name"></span>) so the dial matches your day. Conversion uses your device's current UTC offset, so it follows daylight saving automatically.</p>
@@ -522,6 +558,7 @@ footer a:hover { text-decoration: underline; }
 
 <script src="data.js" onerror="window._dataLoadFailed=true"></script>
 <script src="data.sample.js" onerror=""></script>
+<script src="data_fable.js" onerror=""></script>
 <script>
 // ---- SVG constants (match mockup viewBox 440x440) ----
 const NS   = 'http://www.w3.org/2000/svg';
@@ -1178,6 +1215,28 @@ function toggleInfo() {
 }
 document.getElementById('info-toggle').addEventListener('click', toggleInfo);
 
+// ---- Fable latency card (Artificial Analysis source; independent of the Overwatch dial) ----
+// All dynamic values set via textContent (no innerHTML) to match the repo's XSS-safe pattern.
+function renderFableCard() {
+  const el = document.getElementById('fable-card');
+  if (!el) return;
+  const f = window.FABLE_DATA;
+  const lat = f && f.latency;
+  if (!f || !lat) { el.style.display = 'none'; return; }   // no Fable feed -> stay hidden
+
+  const fmtSec = v => (typeof v === 'number' ? v.toFixed(1) + ' s' : '--');
+  const fmtTps = v => (typeof v === 'number' ? v.toFixed(1) + ' tok/s' : '--');
+
+  document.getElementById('fable-e2e').textContent  = fmtSec(lat.median_end_to_end_response_time_seconds);
+  document.getElementById('fable-ttft').textContent = fmtSec(lat.median_time_to_first_token_seconds);
+  document.getElementById('fable-tps').textContent  = fmtTps(lat.median_output_tokens_per_second);
+
+  const modelEl = document.getElementById('fable-model');
+  if (modelEl) modelEl.textContent = f.name ? ('Model: ' + f.name) : '';
+
+  el.style.display = '';
+}
+
 // ---- Main render ----
 function render() {
   const numEl = document.getElementById('verdict-num');
@@ -1227,6 +1286,7 @@ function render() {
   renderRecentIncidents(data);
   render24hStrip(data.trend24h);
   renderWeekStrip(data.week);
+  renderFableCard();
 
   // Draw dial + verdict for the selected model (or overall)
   applyModel(sel.value);

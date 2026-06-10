@@ -36,11 +36,39 @@ jobs:
       - name: Fetch latest data (no key needed)
         run: python fetch_overwatch.py || echo "fetch failed — site will show SAMPLE data this run"
 
+      # --- Claude Fable latency from Artificial Analysis (separate source) ---
+      # AA free tier = 100 requests/day and AA only refreshes ~every 3h. This workflow
+      # runs every 5 min, so we fetch AA ONLY at the 3h boundary and cache the result;
+      # every other deploy reuses the cached data_fable.js. Keeps us far under quota.
+      - name: Compute 3h cache bucket (UTC)
+        id: aa_bucket
+        run: echo "key=$(date -u +%Y%m%d)-$(( 10#$(date -u +%H) / 3 ))" >> "$GITHUB_OUTPUT"
+
+      - name: Restore last Fable median (Artificial Analysis)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: data_fable.js
+          key: fable-aa-${{ steps.aa_bucket.outputs.key }}
+          restore-keys: |
+            fable-aa-
+
+      - name: Fetch Fable median at 3h boundary only (protects AA daily quota)
+        env:
+          AA_API_KEY: ${{ secrets.AA_API_KEY }}
+        run: |
+          H=$(date -u +%H); M=$(date -u +%M)
+          if [ $((10#$H % 3)) -eq 0 ] && [ $((10#$M)) -lt 5 ]; then
+            python fetch_aa.py || echo "AA fetch failed — Fable card falls back to last cached value"
+          else
+            echo "Off 3h boundary — keeping cached Fable data"
+          fi
+
       - name: Stage site (only the files the page needs)
         run: |
           mkdir -p _site
           cp index.html data.sample.js _site/
           cp data.js _site/ 2>/dev/null || true
+          cp data_fable.js _site/ 2>/dev/null || true
 
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:

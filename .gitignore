@@ -6,6 +6,7 @@
 data/*
 !data/.gitkeep
 data.js
+data_fable.js
 
 # Logs
 *.log
