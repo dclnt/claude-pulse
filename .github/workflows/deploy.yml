@@ -45,6 +45,7 @@ jobs:
         run: echo "key=$(date -u +%Y%m%d)-$(( 10#$(date -u +%H) / 3 ))" >> "$GITHUB_OUTPUT"
 
       - name: Restore last Fable median (Artificial Analysis)
+        id: fable_cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: data_fable.js
@@ -52,16 +53,15 @@ jobs:
           restore-keys: |
             fable-aa-
 
-      - name: Fetch Fable median at 3h boundary only (protects AA daily quota)
+      # Fetch only when THIS 3h bucket isn't cached yet. cache-hit is 'true' only on an
+      # exact key match, so this fires on the first run of each 3h window whenever it
+      # lands — robust to GitHub's irregular cron timing — and stays under AA's 100/day.
+      # restore-keys still hands us the previous bucket's file as a fallback if a fetch fails.
+      - name: Fetch Fable median (once per 3h bucket; protects AA daily quota)
+        if: steps.fable_cache.outputs.cache-hit != 'true'
         env:
           AA_API_KEY: ${{ secrets.AA_API_KEY }}
-        run: |
-          H=$(date -u +%H); M=$(date -u +%M)
-          if [ $((10#$H % 3)) -eq 0 ] && [ $((10#$M)) -lt 5 ]; then
-            python fetch_aa.py || echo "AA fetch failed — Fable card falls back to last cached value"
-          else
-            echo "Off 3h boundary — keeping cached Fable data"
-          fi
+        run: python fetch_aa.py || echo "AA fetch failed — Fable card falls back to last cached value"
 
       - name: Stage site (only the files the page needs)
         run: |
