@@ -137,7 +137,10 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 /* opaque center plate — verdict always legible */
 #verdict {
   position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  /* Anchor the NUMBER (not the whole variable-height block) at the dial center.
+     -2rem ~= half the 3.05rem number line, so the digits sit dead-centre regardless
+     of how many sub-lines the data shows; sub-lines flow below. */
+  transform: translate(-50%, -2rem);
   text-align: center; pointer-events: none; z-index: 2;
 }
 #verdict .num {
@@ -149,14 +152,18 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 }
 /* fixed-width number box: keeps the value centered and stops it sliding when it grows to 3 digits */
 #verdict .num-val { display: inline-block; min-width: 5.7ch; text-align: center; }
+/* confidence chip on its own compact row (out of the number's 3rem line so it stops wasting height) */
+#verdict #confidence-row { margin-top: 8px; line-height: 1; }
 #verdict .delta {
   font-family: 'JetBrains Mono', monospace; font-size: .8rem;
   color: var(--amber); margin-top: 5px; letter-spacing: .02em; font-weight: 500;
+  text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7);
 }
 #verdict .sub {
   font-size: .6rem; color: #9aa6bc; margin-top: 9px;
   text-transform: uppercase; letter-spacing: .3em;
   display: flex; align-items: center; justify-content: center; gap: 6px;
+  text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7);
 }
 #verdict .sub::before {
   content: ""; width: 5px; height: 5px; border-radius: 50%;
@@ -336,8 +343,8 @@ footer a:hover { text-decoration: underline; }
 #confidence-chip.low  .c-dot { background: var(--bad);  box-shadow: 0 0 5px var(--bad); }
 
 /* ---- Deviation + peak-hour lines below verdict ---- */
-#verdict-deviation { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); margin-top: 3px; }
-#verdict-peak      { font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--dim);   margin-top: 2px; }
+#verdict-deviation { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); margin-top: 3px; text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7); }
+#verdict-peak      { font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--dim);   margin-top: 2px; text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7); }
 
 /* ---- Recent incident history ---- */
 #recent-incidents-wrap {
@@ -387,6 +394,7 @@ footer a:hover { text-decoration: underline; }
 @media (max-width: 600px) {
   #dial-wrap { width: 92vw; height: 92vw; padding: 14px; }
   #verdict .num { font-size: 2.2rem; }
+  #verdict { transform: translate(-50%, -1.45rem); }  /* keep number centered at smaller font */
   .panel { grid-template-columns: 1fr; }
   .legend .bar { width: 130px; }
   header { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -400,6 +408,7 @@ footer a:hover { text-decoration: underline; }
 }
 @media (max-width: 400px) {
   #verdict .num { font-size: 1.8rem; }
+  #verdict { transform: translate(-50%, -1.2rem); }  /* keep number centered at smaller font */
   #confidence-chip { font-size: .55rem; padding: 2px 6px; }
 }
 </style>
@@ -469,7 +478,8 @@ footer a:hover { text-decoration: underline; }
                 filter="url(#bloom)" aria-hidden="true"/>
         </svg>
         <div id="verdict" aria-live="polite" aria-atomic="true">
-          <div class="num" id="verdict-num">--<span id="confidence-chip" class="med" title="" role="img" aria-label="Confidence"><span class="c-dot"></span><span id="confidence-label">MED</span></span></div>
+          <div class="num" id="verdict-num">--</div>
+          <div id="confidence-row"><span id="confidence-chip" class="med" title="" role="img" aria-label="Confidence"><span class="c-dot"></span><span id="confidence-label">MED</span></span></div>
           <div class="delta" id="verdict-delta"></div>
           <div id="verdict-deviation"></div>
           <div id="verdict-peak"></div>
@@ -777,31 +787,24 @@ function setVerdict(verdictObj, feedLastUpdated, reportObj) {
   renderConfidenceChip(useReport ? reportObj.confidence : null);
 
   if (!displayMs) {
-    // Clear the num text but keep the chip element intact
-    const chip = document.getElementById('confidence-chip');
-    const chipOuter = chip ? chip.outerHTML : '';
-    numEl.innerHTML = '<span class="num-val">--</span>' + chipOuter;
+    numEl.innerHTML = '<span class="num-val">--</span>';   // chip is its own row now
     deltaEl.textContent = '';
     if (devEl) devEl.textContent = '';
     if (peakEl) peakEl.textContent = '';
     return;
   }
 
-  // Count-up animation — animates the text node before the chip
-  const chip = document.getElementById('confidence-chip');
-  const chipHTML = chip ? chip.outerHTML : '';
+  // Count-up animation (chip lives in #confidence-row, so it isn't touched here)
   const target = displayMs, dur = 600, t0 = performance.now();
   function countUp(t) {
     const p   = Math.min((t - t0) / dur, 1);
     const val = Math.round(target * p);
     const valStr = val >= 1000 ? `${(val / 1000).toFixed(1)}s` : `${val}ms`;
-    numEl.innerHTML = `<span class="num-val">${valStr}</span>` + chipHTML;
+    numEl.innerHTML = `<span class="num-val">${valStr}</span>`;
     if (p < 1) { requestAnimationFrame(countUp); return; }
     numEl.classList.remove('glow');
     void numEl.offsetWidth;
     numEl.classList.add('glow');
-    // Re-attach confidence chip listener now that DOM was re-written
-    renderConfidenceChip(useReport ? reportObj.confidence : null);
   }
   requestAnimationFrame(countUp);
 
