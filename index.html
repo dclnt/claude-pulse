@@ -143,9 +143,12 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 #verdict .num {
   font-family: 'JetBrains Mono', monospace; font-weight: 800;
   font-size: 3.05rem; color: var(--fast); letter-spacing: -.03em;
-  text-shadow: 0 0 26px rgba(143,247,184,.42), .6px 0 0 rgba(138,123,255,.14);
+  /* dark halo keeps the number legible over bright green / amber arcs; soft green glow kept for style */
+  text-shadow: 0 0 3px rgba(5,7,12,.96), 0 0 7px rgba(5,7,12,.9), 0 1px 3px rgba(5,7,12,.92), 0 0 22px rgba(143,247,184,.30);
   font-variant-numeric: tabular-nums; transition: color .4s;
 }
+/* fixed-width number box: keeps the value centered and stops it sliding when it grows to 3 digits */
+#verdict .num-val { display: inline-block; min-width: 5.7ch; text-align: center; }
 #verdict .delta {
   font-family: 'JetBrains Mono', monospace; font-size: .8rem;
   color: var(--amber); margin-top: 5px; letter-spacing: .02em; font-weight: 500;
@@ -284,7 +287,7 @@ footer a:hover { text-decoration: underline; }
 }
 
 /* ---- Verdict count-up glow ---- */
-@keyframes glow-pulse { 0%,100%{text-shadow:0 0 26px rgba(143,247,184,.42),.6px 0 0 rgba(138,123,255,.14)} 50%{text-shadow:0 0 48px rgba(143,247,184,.75), 0 0 18px var(--fast),.6px 0 0 rgba(138,123,255,.22)} }
+@keyframes glow-pulse { 0%,100%{text-shadow:0 0 3px rgba(5,7,12,.96),0 0 7px rgba(5,7,12,.9),0 1px 3px rgba(5,7,12,.92),0 0 22px rgba(143,247,184,.30)} 50%{text-shadow:0 0 3px rgba(5,7,12,.96),0 0 7px rgba(5,7,12,.9),0 1px 3px rgba(5,7,12,.92),0 0 40px rgba(143,247,184,.6),0 0 16px var(--fast)} }
 .glow { animation: glow-pulse .65s ease-out; }
 
 /* ---- Cold-start arc reveal ---- */
@@ -777,7 +780,7 @@ function setVerdict(verdictObj, feedLastUpdated, reportObj) {
     // Clear the num text but keep the chip element intact
     const chip = document.getElementById('confidence-chip');
     const chipOuter = chip ? chip.outerHTML : '';
-    numEl.innerHTML = '--' + chipOuter;
+    numEl.innerHTML = '<span class="num-val">--</span>' + chipOuter;
     deltaEl.textContent = '';
     if (devEl) devEl.textContent = '';
     if (peakEl) peakEl.textContent = '';
@@ -792,7 +795,7 @@ function setVerdict(verdictObj, feedLastUpdated, reportObj) {
     const p   = Math.min((t - t0) / dur, 1);
     const val = Math.round(target * p);
     const valStr = val >= 1000 ? `${(val / 1000).toFixed(1)}s` : `${val}ms`;
-    numEl.innerHTML = valStr + chipHTML;
+    numEl.innerHTML = `<span class="num-val">${valStr}</span>` + chipHTML;
     if (p < 1) { requestAnimationFrame(countUp); return; }
     numEl.classList.remove('glow');
     void numEl.offsetWidth;
