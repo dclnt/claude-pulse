@@ -342,9 +342,8 @@ footer a:hover { text-decoration: underline; }
 #confidence-chip.med  .c-dot { background: var(--warn); box-shadow: 0 0 5px var(--warn); }
 #confidence-chip.low  .c-dot { background: var(--bad);  box-shadow: 0 0 5px var(--bad); }
 
-/* ---- Deviation + peak-hour lines below verdict ---- */
+/* ---- Deviation line below verdict ---- */
 #verdict-deviation { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); margin-top: 3px; text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7); }
-#verdict-peak      { font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--dim);   margin-top: 2px; text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7); }
 
 /* ---- Recent incident history ---- */
 #recent-incidents-wrap {
@@ -482,7 +481,6 @@ footer a:hover { text-decoration: underline; }
           <div id="confidence-row"><span id="confidence-chip" class="med" title="" role="img" aria-label="Confidence"><span class="c-dot"></span><span id="confidence-label">MED</span></span></div>
           <div class="delta" id="verdict-delta"></div>
           <div id="verdict-deviation"></div>
-          <div id="verdict-peak"></div>
           <div class="sub">right now</div>
         </div>
       </div>
@@ -760,7 +758,6 @@ function setVerdict(verdictObj, feedLastUpdated, reportObj) {
   const numEl   = document.getElementById('verdict-num');
   const deltaEl = document.getElementById('verdict-delta');
   const devEl   = document.getElementById('verdict-deviation');
-  const peakEl  = document.getElementById('verdict-peak');
   const ribbon  = document.getElementById('stale-ribbon');
 
   // Stale check uses the overall feed freshness, not per-model
@@ -790,7 +787,6 @@ function setVerdict(verdictObj, feedLastUpdated, reportObj) {
     numEl.innerHTML = '<span class="num-val">--</span>';   // chip is its own row now
     deltaEl.textContent = '';
     if (devEl) devEl.textContent = '';
-    if (peakEl) peakEl.textContent = '';
     return;
   }
 
@@ -835,12 +831,6 @@ function setVerdict(verdictObj, feedLastUpdated, reportObj) {
     devEl.textContent = '';
   }
 
-  // Typical for this hour
-  if (peakEl && useReport && reportObj.inputs && reportObj.inputs.peakHourExpected != null) {
-    peakEl.textContent = `typical this hour: ${fmtMs(reportObj.inputs.peakHourExpected)}`;
-  } else if (peakEl) {
-    peakEl.textContent = '';
-  }
 }
 
 // ---- Per-model report (client-side recompute) ----
@@ -914,7 +904,6 @@ function computeModelReport(m) {
     inputs: {
       last15MinAverage: last15,
       lastHourAverage: byHourMs,
-      peakHourExpected: byHourMs,
       allTimeAverage: allTime,
     },
   };
