@@ -137,7 +137,9 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 /* opaque center plate — verdict always legible */
 #verdict {
   position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  /* sit lower than dead-center: the block is taller than the dark plate, so true centering
+     pushes the big number up onto the top arcs. -38% drops the number onto the plate. */
+  transform: translate(-50%, -38%);
   text-align: center; pointer-events: none; z-index: 2;
 }
 #verdict .num {
@@ -152,11 +154,13 @@ header { display: flex; align-items: flex-start; justify-content: space-between;
 #verdict .delta {
   font-family: 'JetBrains Mono', monospace; font-size: .8rem;
   color: var(--amber); margin-top: 5px; letter-spacing: .02em; font-weight: 500;
+  text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7);
 }
 #verdict .sub {
   font-size: .6rem; color: #9aa6bc; margin-top: 9px;
   text-transform: uppercase; letter-spacing: .3em;
   display: flex; align-items: center; justify-content: center; gap: 6px;
+  text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7);
 }
 #verdict .sub::before {
   content: ""; width: 5px; height: 5px; border-radius: 50%;
@@ -336,8 +340,8 @@ footer a:hover { text-decoration: underline; }
 #confidence-chip.low  .c-dot { background: var(--bad);  box-shadow: 0 0 5px var(--bad); }
 
 /* ---- Deviation + peak-hour lines below verdict ---- */
-#verdict-deviation { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); margin-top: 3px; }
-#verdict-peak      { font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--dim);   margin-top: 2px; }
+#verdict-deviation { font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--muted); margin-top: 3px; text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7); }
+#verdict-peak      { font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--dim);   margin-top: 2px; text-shadow: 0 1px 2px rgba(5,7,12,.92), 0 0 3px rgba(5,7,12,.7); }
 
 /* ---- Recent incident history ---- */
 #recent-incidents-wrap {
