@@ -486,20 +486,6 @@ footer a:hover { text-decoration: underline; }
     <div id="legend-cap">hour of day</div>
   </div>
 
-  <!-- side-by-side cards -->
-  <div class="panel">
-    <div class="card" role="region" aria-label="Last 24 hours">
-      <div class="card-title">last 24 hours <span class="v" id="avg24-val"></span></div>
-      <div class="strip" id="s24" aria-label="24-hour latency strip"></div>
-      <div class="strip-x" id="s24-labels"></div>
-    </div>
-    <div class="card" role="region" aria-label="Last 7 days">
-      <div class="card-title">last 7 days <span class="v" id="avg7-val"></span></div>
-      <div class="week" id="wk" aria-label="7-day latency chart"></div>
-      <div class="week-x" id="wk-labels"></div>
-    </div>
-  </div>
-
   <!-- Claude Fable 5 latency — sourced from Artificial Analysis (NOT Overwatch; separate methodology) -->
   <div id="fable-card" class="card fable-card" role="region" aria-label="Claude Fable 5 latency" style="display:none">
     <div class="card-title">
@@ -522,6 +508,20 @@ footer a:hover { text-decoration: underline; }
     </div>
     <div class="fable-note">
       <strong>72h median &middot; max-effort reasoning (includes thinking time)</strong> &mdash; not comparable to the dial's near-real-time response times. Single US vantage &middot; updates&nbsp;~every&nbsp;3h. <span id="fable-model"></span>
+    </div>
+  </div>
+
+  <!-- side-by-side cards -->
+  <div class="panel">
+    <div class="card" role="region" aria-label="Last 24 hours">
+      <div class="card-title">last 24 hours <span class="v" id="avg24-val"></span></div>
+      <div class="strip" id="s24" aria-label="24-hour latency strip"></div>
+      <div class="strip-x" id="s24-labels"></div>
+    </div>
+    <div class="card" role="region" aria-label="Last 7 days">
+      <div class="card-title">last 7 days <span class="v" id="avg7-val"></span></div>
+      <div class="week" id="wk" aria-label="7-day latency chart"></div>
+      <div class="week-x" id="wk-labels"></div>
     </div>
   </div>
 
